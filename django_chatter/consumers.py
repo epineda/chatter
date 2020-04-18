@@ -186,6 +186,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
             for username in self.room_username_list:
                 if username != self.user.get_username():
+                    username = slugify(username)
                     await self.channel_layer.group_send(
                         f'user_{username}',
                         {
