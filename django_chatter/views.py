@@ -48,8 +48,7 @@ class IndexView(LoginRequiredMixin, View):
 			)
 		else:
 			# create room with the user themselves
-			user = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: request.user})
-			room_id = create_room([user])
+			room_id = create_room([request.user])
 			return HttpResponseRedirect(
 				reverse('django_chatter:chatroom', args=[room_id])
 			)
@@ -65,7 +64,6 @@ class ChatRoomView(LoginRequiredMixin, TemplateView):
 		uuid = kwargs.get('uuid')
 		try:
 			room = Room.objects.get(id=uuid)
-			user=get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: self.request.user})
 		except Exception as e:
 			logger.exception("\n\nException in django_chatter.views.ChatRoomView:\n")
 			raise Http404("Sorry! What you're looking for isn't here.")
@@ -122,7 +120,7 @@ def users_list(request):
 
 @login_required
 def get_chat_url(request):
-	user = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: request.user})
+	user = request.user
 	target_user = get_user_model().objects.get(pk=request.POST.get('target_user'))
 
 	'''
