@@ -209,7 +209,8 @@ class AlertConsumer(AsyncJsonWebsocketConsumer):
     '''
     async def connect(self):
         self.user = self.scope['user']
-        self.user_group_name = f'user_{self.user.username}'
+        username = self.user.get_username()
+        self.user_group_name = f'user_{username}'
         await self.channel_layer.group_add(
             self.user_group_name,
             self.channel_name
