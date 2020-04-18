@@ -128,7 +128,7 @@ ChatterMTMiddlewareStack = lambda inner: CookieMiddleware(
 # Takes in a list of User objects and returns the UUID of the room created.
 def create_room(user_list):
     for user in user_list:
-        if type(user) != get_user_model():
+        if not isinstance(user, get_user_model()):
             raise TypeError("Parameters passed to create_room doesn't "
                 "match your project's user model. Please make sure the list "
                 "you passed contains valid User objects as defined in your "
