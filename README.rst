@@ -129,25 +129,6 @@ Installation
 
     ASGI_APPLICATION = '<project name>.routing.application'
 
-* Chatter uses a context processor to generate a list of all rooms that a user
-  is a member of. To use this context processor, add it to your :code:`TEMPLATES`
-  list in your :code:`settings.py` file:
-
-  .. code-block:: python
-
-    TEMPLATES = [
-      {
-        ...
-        'OPTIONS': {
-          'context_processors': [
-            ...,
-            'django_chatter.context_processors.get_chatroom_list',
-            ...,
-          ],
-        },
-      },
-    ]
-
 * Link :code:`django_chatter.urls` to the URL you want in your
   URLConf (:code:`<project>/urls.py`).
 
