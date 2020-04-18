@@ -118,7 +118,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                         await self.accept()
 
                         for user in self.room.members.all():
-                            self.room_username_list.append(user.username)
+                            self.room_username_list.append(user.get_username())
                     else:
                         await self.disconnect(403)
             else:
@@ -131,7 +131,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     await self.accept()
 
                     for user in self.room.members.all():
-                        self.room_username_list.append(user.username)
+                        self.room_username_list.append(user.get_username())
                 else:
                     await self.disconnect(403)
         except Exception as ex:
@@ -145,7 +145,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def receive_json(self, data):
-        if (data['sender'] != self.user.username)\
+        if (data['sender'] != self.user.get_username())\
             or data['room_id'] != str(self.room.id):
             await self.disconnect(403)
 
@@ -178,13 +178,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     'message_type': 'text',
                     'message': self.message_safe,
                     'date_created': time,
-                    'sender': self.user.username,
+                    'sender': self.user.get_username(),
                     'room_id': room_id,
                 }
             )
 
             for username in self.room_username_list:
-                if username != self.user.username:
+                if username != self.user.get_username():
                     await self.channel_layer.group_send(
                         f'user_{username}',
                         {
@@ -192,7 +192,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                             'message_type': 'text',
                             'message': self.message_safe,
                             'date_created': time,
-                            'sender': self.user.username,
+                            'sender': self.user.get_username(),
                             'room_id': room_id,
                         }
                     )

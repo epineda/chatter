@@ -27,7 +27,7 @@ TEST_CHANNEL_LAYERS = {
 def prepare_room_and_user():
     set_up_data()
     room = Room.objects.create()
-    user = get_user_model().objects.get(username="user0")
+    user = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: "user0"})
     room.members.add(user)
     room.save()
     client = Client()
@@ -53,7 +53,7 @@ async def test_single_tenant_chat_consumer():
     data = {
         'message_type': 'text',
         'message': "Hello!",
-        'sender': user.username,
+        'sender': user.get_username(),
         'room_id': str(room.id),
         }
     await communicator.send_json_to(data)
@@ -82,7 +82,7 @@ async def test_multitenant_chat_consumer():
     data = {
         'message_type': 'text',
         'message': "Hello!",
-        'sender': user.username,
+        'sender': user.get_username(),
         'room_id': str(room.id),
         }
     await communicator.send_json_to(data)
@@ -121,7 +121,7 @@ async def test_harmful_message_in_chat_consumer():
     data = {
         'message_type': 'text',
         'message': "<script>evil();</script>",
-        'sender': user.username,
+        'sender': user.get_username(),
         'room_id': str(room.id),
         }
     await communicator.send_json_to(data)
@@ -136,7 +136,7 @@ async def test_harmful_message_in_chat_consumer():
 async def test_chat_alert_consumer():
     settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
     client, room, user = prepare_room_and_user()
-    user1 = get_user_model().objects.get(username="user1")
+    user1 = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: "user1"})
     other_client = Client()
     other_client.force_login(user=user1)
     room_with_two = Room.objects.create()
@@ -158,8 +158,9 @@ async def test_chat_alert_consumer():
     connected, subprotocol = await chat_communicator.connect()
     assert connected
 
+    user1_username = user1.get_username()
     user1_alert_communicator = WebsocketCommunicator(
-        application, f"/ws/django_chatter/users/{user1.username}/",
+        application, f"/ws/django_chatter/users/{user1_username}/",
         headers=[
             (
                 b'cookie',
@@ -173,7 +174,7 @@ async def test_chat_alert_consumer():
     data = {
         'message_type': 'text',
         'message': "<script>evil();</script>",
-        'sender': user.username,
+        'sender': user.get_username(),
         'room_id': str(room_with_two.id),
         }
     await chat_communicator.send_json_to(data)

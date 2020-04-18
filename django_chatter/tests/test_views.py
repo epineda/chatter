@@ -15,7 +15,7 @@ class TestIndexView(TenantTestCase):
     def setUp(self):
         super().setUp()
         self.client = TenantClient(self.tenant)
-        user = get_user_model().objects.create(username="ted")
+        user = get_user_model().objects.create(**{get_user_model().USERNAME_FIELD: "ted"})
         user.set_password('dummypassword')
         user.save()
         room = Room.objects.create()
@@ -33,7 +33,7 @@ class TestIndexView(TenantTestCase):
 
 
     def test_chat_render_view(self):
-        logged_in = self.client.login(username="ted", password="dummypassword")
+        logged_in = self.client.login(**{get_user_model().USERNAME_FIELD: "ted", 'password': "dummypassword"})
         found = resolve(reverse('django_chatter:index'))
         self.assertEqual(
             type(found.func), type(IndexView.as_view())
@@ -68,12 +68,12 @@ class TestUsernames(TenantTestCase):
         super().setUp()
         self.client = TenantClient(self.tenant)
         for i in range(5):
-            user = get_user_model().objects.create(username=f"user{i}")
+            user = get_user_model().objects.create(**{get_user_model().USERNAME_FIELD: f"user{i}"})
             user.set_password("dummypassword")
             user.save()
 
     def test_users_list_view(self):
-        logged_in = self.client.login(username="user0", password="dummypassword")
+        logged_in = self.client.login(**{get_user_model().USERNAME_FIELD: "user0", 'password': "dummypassword"})
         found = resolve(reverse('django_chatter:users_list'))
         self.assertEqual(found.func, users_list)
         response = self.client.get(
@@ -84,7 +84,7 @@ class TestUsernames(TenantTestCase):
         for user in get_user_model().objects.all():
             dict = {}
             dict["id"] = user.pk
-            dict["text"] = user.username
+            dict["text"] = user.get_username()
             json_array.append(dict)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(str(response.content, encoding='utf-8'), json.dumps(json_array))
@@ -94,7 +94,7 @@ class TestMessagesFetch(TenantTestCase):
     def setUp(self):
         super().setUp()
         self.client = TenantClient(self.tenant)
-        user = get_user_model().objects.create(username="ted")
+        user = get_user_model().objects.create(**{get_user_model().USERNAME_FIELD: "ted"})
         user.set_password('dummypassword')
         user.save()
         room = Room.objects.create()
@@ -103,14 +103,14 @@ class TestMessagesFetch(TenantTestCase):
             Message.objects.create(sender=user, room=room, text=f"Message {i}")
 
     def test_pagination(self):
-        logged_in = self.client.login(username="ted", password="dummypassword")
+        logged_in = self.client.login(**{get_user_model().USERNAME_FIELD: "ted", 'password': "dummypassword"})
         assert logged_in
         room_uuid = str(Room.objects.all()[0].id)
         messages = Message.objects.all()[:20]
         messages_array = []
         for message in messages:
             dict = {}
-            dict['sender'] = message.sender.username
+            dict['sender'] = message.sender.get_username()
             dict['message'] = message.text
             dict['received_room_id'] = room_uuid
             dict['date_created'] = message.date_created.strftime("%d %b %Y %H:%M:%S %Z")
@@ -129,7 +129,7 @@ class TestMessagesFetch(TenantTestCase):
         messages_array = []
         for message in messages:
             dict = {}
-            dict['sender'] = message.sender.username
+            dict['sender'] = message.sender.get_username()
             dict['message'] = message.text
             dict['received_room_id'] = room_uuid
             dict['date_created'] = message.date_created.strftime("%d %b %Y %H:%M:%S %Z")

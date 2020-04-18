@@ -11,7 +11,7 @@ class RoomTestCase(TestCase):
 	def setUp(self):
 		user_list = []
 		for i in range(3):
-			user = get_user_model().objects.create(username=f"user{i}")
+			user = get_user_model().objects.create(**{get_user_model().USERNAME_FIELD: f"user{i}"})
 			user_list.append(user)
 		room = Room.objects.create()
 		room.members.add(*user_list)
@@ -49,7 +49,7 @@ class RoomTestCase(TestCase):
 class MessageTestCase(TestCase):
 
 	def setUp(self):
-		user = get_user_model().objects.create(username="user0")
+		user = get_user_model().objects.create(**{get_user_model().USERNAME_FIELD: "user0"})
 		room = Room()
 		room.save()
 		room.members.add(user)

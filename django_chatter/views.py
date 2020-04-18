@@ -48,7 +48,7 @@ class IndexView(LoginRequiredMixin, View):
 			)
 		else:
 			# create room with the user themselves
-			user = get_user_model().objects.get(username=request.user)
+			user = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: request.user})
 			room_id = create_room([user])
 			return HttpResponseRedirect(
 				reverse('django_chatter:chatroom', args=[room_id])
@@ -65,7 +65,7 @@ class ChatRoomView(LoginRequiredMixin, TemplateView):
 		uuid = kwargs.get('uuid')
 		try:
 			room = Room.objects.get(id=uuid)
-			user=get_user_model().objects.get(username=self.request.user)
+			user=get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: self.request.user})
 		except Exception as e:
 			logger.exception("\n\nException in django_chatter.views.ChatRoomView:\n")
 			raise Http404("Sorry! What you're looking for isn't here.")
@@ -115,14 +115,14 @@ def users_list(request):
 		for user in get_user_model().objects.all():
 			data_dict = {}
 			data_dict['id'] = user.pk
-			data_dict['text'] = user.username
+			data_dict['text'] = user.get_username()
 			data_array.append(data_dict)
 		return JsonResponse(data_array, safe=False)
 
 
 @login_required
 def get_chat_url(request):
-	user = get_user_model().objects.get(username=request.user)
+	user = get_user_model().objects.get(**{get_user_model().USERNAME_FIELD: request.user})
 	target_user = get_user_model().objects.get(pk=request.POST.get('target_user'))
 
 	'''
@@ -159,7 +159,7 @@ def get_messages(request, uuid):
 			messages_array = []
 			for message in selected:
 				dict = {}
-				dict['sender'] = message.sender.username
+				dict['sender'] = message.sender.get_username()
 				dict['message'] = message.text
 				dict['received_room_id'] = uuid
 				dict['date_created'] = message.date_created.strftime("%d %b %Y %H:%M:%S %Z")
